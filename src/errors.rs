@@ -16,7 +16,6 @@ pub enum DbError {
 }
 
 #[derive(Error, Debug)]
-#[allow(dead_code)]
 pub enum CliError {
     #[error("Название задачи не может быть пустым")]
     EmptyTitle,
@@ -32,4 +31,7 @@ pub enum AppError {
 
     #[error(transparent)]
     Cli(#[from] CliError),
+
+    #[error("Ошибка JSON: {0}")]
+    Json(#[from] serde_json::Error),
 }

@@ -1,8 +1,6 @@
-
-
-use clap::{Parser, Subcommand};
 use crate::db::Db;
-use crate::errors::AppError;
+use crate::errors::{AppError, CliError};
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "todo")]
@@ -26,13 +24,14 @@ pub enum Command {
     Delete {
         id: String,
     },
-    ToJson
+    ToJson,
 }
 
 impl Command {
     pub fn execute(self, db: &Db) -> Result<(), AppError> {
         match self {
             Command::Add { title, description } => {
+                validate_title(&title)?;
                 let id = db.add_task(&title, description.as_deref())?;
                 println!("Задача добавлена [{}]", id);
             }
@@ -46,34 +45,53 @@ impl Command {
                 }
 
                 for task in &tasks {
-                    let desc = task.description
-                        .as_deref()
-                        .unwrap_or("—");
+                    let desc = task.description.as_deref().unwrap_or("-");
 
-                    println!(
-                        "[{}] {} | {} | {}",
-                        task.status, task.id, task.title, desc
-                    );
+                    println!("[{}] {} | {} | {}", task.status, task.id, task.title, desc);
                 }
 
                 println!("\nВсего: {}", tasks.len());
             }
 
             Command::Done { id } => {
+                validate_id(&id)?;
                 db.update_status(&id, "Complete")?;
                 println!("Задача {} отмечена как выполненная", id);
             }
 
             Command::Delete { id } => {
+                validate_id(&id)?;
                 db.delete_task(&id)?;
                 println!("Задача {} удалена", id);
             }
 
-            Command::ToJson {} => {
-                
+            Command::ToJson => {
+                let tasks = db.get_tasks()?;
+                println!("{}", serde_json::to_string_pretty(&tasks)?);
             }
         }
 
         Ok(())
     }
+}
+
+fn validate_title(title: &str) -> Result<(), CliError> {
+    if title.trim().is_empty() {
+        return Err(CliError::EmptyTitle);
+    }
+
+    Ok(())
+}
+
+fn validate_id(id: &str) -> Result<(), CliError> {
+    let is_valid = id.len() == 8
+        && id
+            .chars()
+            .all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit());
+
+    if !is_valid {
+        return Err(CliError::InvalidId(id.to_string()));
+    }
+
+    Ok(())
 }

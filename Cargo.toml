@@ -1,7 +1,11 @@
 [package]
-name = "console_crud"
+name = "cli_todo_rust"
 version = "0.1.0"
 edition = "2021"
+
+[[bin]]
+name = "todo"
+path = "src/main.rs"
 
 [dependencies]
 chrono = { version = "0.4.44", features = ["serde"] }

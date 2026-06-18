@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 type TaskId = String;
 
@@ -8,7 +8,7 @@ pub enum Status {
     Todo,
     InProgress,
     Complete,
-    Cancelled
+    Cancelled,
 }
 
 impl std::fmt::Display for Status {
@@ -24,9 +24,9 @@ impl std::fmt::Display for Status {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
-    pub id : TaskId,
-    pub title : String,
-    pub description : Option<String>,
-    pub created_at : DateTime<Utc>,
-    pub status : Status,
+    pub id: TaskId,
+    pub title: String,
+    pub description: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub status: Status,
 }
